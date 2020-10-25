@@ -1,4 +1,4 @@
-#Modified from https://github.com/lernapparat/lernapparat/
+''' Modified from https://github.com/lernapparat/lernapparat/ '''
 
 import torch
 import torch.nn as nn

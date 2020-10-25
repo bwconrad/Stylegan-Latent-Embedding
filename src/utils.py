@@ -7,6 +7,7 @@ import io
 from typing import Any
 import re
 import uuid
+import matplotlib.pyplot as plt
 
 def is_url(obj: Any) -> bool:
     '''
@@ -97,3 +98,10 @@ def open_url(url: str, cache_dir: str = None, num_attempts: int = 10, verbose: b
 
     # Return data as file object.
     return io.BytesIO(url_data)
+
+
+def show_img(img):
+    plt.rcParams["figure.figsize"] = (7,7)
+    plt.axis('off')
+    plt.imshow(img.squeeze(0).permute(1,2,0).numpy())
+    plt.show()

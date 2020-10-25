@@ -1,2 +1,2 @@
-# Face Inpainting via Latent Space Search
+# StyleGAN Latent Embedding Image Reconstruction
 

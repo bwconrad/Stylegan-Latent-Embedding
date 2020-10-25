@@ -1,22 +1,23 @@
+''' Modified from: https://github.com/adamian98/pulse '''
+
 import torch
 
 class LossBuilder(torch.nn.Module):
-    def __init__(self, ref_im, ref_mask, loss_str, eps):
+    def __init__(self, ref_im, l2_weight=1, l1_weight=0, geocross_weight=0):
         super(LossBuilder, self).__init__()
         assert ref_im.shape[2]==ref_im.shape[3]
 
         self.ref_im = ref_im
-        self.ref_mask = ref_mask
-
-        self.parsed_loss = [loss_term.split('*') for loss_term in loss_str.split('+')]
-        self.eps = eps
+        self.l2_weight = l2_weight
+        self.l1_weight = l1_weight 
+        self.geocross_weight = geocross_weight
 
 
     def _loss_l2(self, gen_im, ref_im, **kwargs):
-        return ((gen_im - ref_im).pow(2).mean((1, 2, 3)).clamp(min=self.eps).sum())
+        return ((gen_im - ref_im).pow(2).mean((1, 2, 3)).clamp(min=0).sum())
 
     def _loss_l1(self, gen_im, ref_im, **kwargs):
-        return 10*((gen_im - ref_im).abs().mean((1, 2, 3)).clamp(min=self.eps).sum())
+        return ((gen_im - ref_im).abs().mean((1, 2, 3)).clamp(min=0).sum())
 
     # Uses geodesic distance on sphere to sum pairwise distances of the 18 vectors
     def _loss_geocross(self, latent, **kwargs):
@@ -32,22 +33,24 @@ class LossBuilder(torch.nn.Module):
             return D
 
     def forward(self, latent, gen_im):
-        gen_im = gen_im*(1-self.ref_mask) + self.ref_mask
-
         var_dict = {'latent': latent,
                     'gen_im': gen_im,
                     'ref_im': self.ref_im,
                     }
 
         loss = 0
-        loss_fun_dict = {
-            'L2': self._loss_l2,
-            'L1': self._loss_l1,
-            'GEOCROSS': self._loss_geocross,
-        }
         losses = {}
-        for weight, loss_type in self.parsed_loss:
-            tmp_loss = loss_fun_dict[loss_type](**var_dict)
-            losses[loss_type] = tmp_loss
-            loss += float(weight)*tmp_loss
+        if self.l2_weight>0:
+            tmp_loss = self._loss_l2(**var_dict)
+            losses['L2'] = tmp_loss
+            loss += float(self.l2_weight)*tmp_loss
+        if self.l1_weight>0:
+            tmp_loss = self._loss_l1(**var_dict)
+            losses['L1'] = tmp_loss
+            loss += float(l1_weight)*tmp_loss
+        if self.geocross_weight>0:
+            tmp_loss = self._loss_geocross(**var_dict)
+            losses['Geocross'] = tmp_loss
+            loss += float(geocross_weight)*tmp_loss
+        
         return loss, losses

@@ -1,3 +1,5 @@
+''' From: https://github.com/adamian98/pulse '''
+
 import torch
 from torch.optim import Optimizer
 
