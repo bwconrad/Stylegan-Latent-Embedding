@@ -1,4 +1,4 @@
-# StyleGAN Latent Embedding Image Reconstruction
+# StyleGAN Latent Embedding
 <p align="center">
   <img src="samples/tigger.gif", width="250" />
   <img src="samples/waterfall.gif", width="250" />
